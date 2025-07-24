@@ -2,11 +2,12 @@ use reqwest::{Error, Response};
 use auth_service::Application;
 use serde::{Serialize, Serializer};
 use serde::ser::{SerializeStruct, SerializeStructVariant};
-
-pub struct TestApp {
-    pub address: String,
-    pub http_client: reqwest::Client,
-}
+use std::{time::Duration, net::SocketAddr};
+use tokio::{spawn, time::sleep};
+use axum_server::from_tcp;
+use reqwest::Client;
+use auth_service::app_router;
+use std::net::TcpListener;
 
 pub struct SignupBody {
     pub email: String,
@@ -56,22 +57,50 @@ pub struct VerifyJWTBody {
     pub token: String
 }
 
+pub struct TestApp {
+    pub address: String,
+    pub http_client: Client,
+}
+
 impl TestApp {
     pub async fn new() -> Self {
-        let app = Application::build("127.0.0.1:0")
-            .await
-            .expect("Failed to build app");
+        let listener = TcpListener::bind("127.0.0.1:0")
+            .expect("Failed to bind ephemeral port");
 
-        let address = format!("http://{}", app.address.clone());
+        let port = listener.local_addr().unwrap().port();
+        let address = format!("http://127.0.0.1:{}", port);
 
-        // Run the auth service in a separate async task
-        // to avoid blocking the main test thread.
-        #[allow(clippy::let_underscore_future)]
-        let _ = tokio::spawn(app.run());
+        let server = from_tcp(listener)
+            .serve(app_router().into_make_service());
 
-        let http_client = reqwest::Client::new();
+        // 3) Spawn it
+        spawn(async move {
+            if let Err(e) = server.await {
+                eprintln!("Test server error: {}", e);
+            }
+        });
 
-        Self { address, http_client }
+        // 4) Poll until up (no more blind sleep)
+        let client = Client::new();
+        let mut last_err = None;
+        for _ in 0..20 {
+            match client.get(&address).send().await {
+                Ok(resp) if resp.status().is_success() => {
+                    last_err = None;
+                    break;
+                }
+                Err(err) => {
+                    last_err = Some(err);
+                    sleep(Duration::from_millis(50)).await;
+                }
+                _ => {}
+            }
+        }
+        if let Some(err) = last_err {
+            panic!("Test server never came up: {}", err);
+        }
+
+        TestApp { address, http_client: client }
     }
 
     pub async fn get_root(&self) -> reqwest::Response {
@@ -79,10 +108,10 @@ impl TestApp {
             .get(&format!("{}/", &self.address))
             .send()
             .await
-            .expect("Failed to execute request.")
+            .expect("Failed to execute root request.")
     }
 
-    pub async fn signup(&self, email: String, password: String, requires_mfa: bool) -> Result<Response, Error> {
+    pub async fn signup(&self, email: String, password: String, requires_mfa: bool) -> Response {
         let body = SignupBody {
             email,
             password,
@@ -95,9 +124,10 @@ impl TestApp {
             .header("Content-Type", "application/json")
             .send()
             .await
+            .expect("Failed to execute signup request.")
     }
 
-    pub async fn login(&self, email: String, password: String) -> Result<Response, Error> {
+    pub async fn login(&self, email: String, password: String) -> Response {
         let body = LoginBody {
             email,
             password
@@ -109,20 +139,23 @@ impl TestApp {
             .header("Content-Type", "application/json")
             .send()
             .await
+            .expect("Failed to execute login request.")
+
     }
 
-    pub async fn logout(&self, jwt: String) -> Result<Response, Error> {
+    pub async fn logout(&self, jwt: String) -> Response {
 
         self.http_client
             .post(&format!("{}/logout", &self.address))
-            .json(&body)
             .header("Content-Type", "application/json")
             .header("Cookie", format!("jwt={}", jwt))
             .send()
             .await
+            .expect("Failed to execute logout request.")
+
     }
 
-    pub async fn verify_token(&self, jwt_token: String) -> Result<Response, Error> {
+    pub async fn verify_token(&self, jwt_token: String) -> Response {
         let body = VerifyJWTBody {
             token: jwt_token
         };
@@ -133,6 +166,8 @@ impl TestApp {
             .header("Content-Type", "application/json")
             .send()
             .await
+            .expect("Failed to execute verify token request.")
+
     }
 
 
