@@ -1,19 +1,21 @@
-use axum::{Router, routing::{get, post}, http::StatusCode, response::Html};
+use axum::{response::Html, routing::post, Router};
 use tower_http::services::ServeDir;
 use axum_server::bind;
-use std::{error::Error, pin::Pin, future::Future};
+use std::{error::Error, future::Future, pin::Pin};
 use axum::response::IntoResponse;
+use routes::{login, logout, signup, verify_mfa, verify_token};
 
+pub mod routes;
 type ServerFuture = Pin<Box<dyn Future<Output = Result<(), std::io::Error>> + Send>>;
 
 pub fn app_router() -> Router {
     Router::new()
         .nest_service("/", ServeDir::new("assets"))
-        .route("/signup", post(signup))
-        .route("/login", post(login))
-        .route("/verify-2fa", post(verify_mfa))
-        .route("/logout", post(logout))
-        .route("/verify-token", post(verify_token))
+        .route("/signup", post(signup::signup))
+        .route("/login", post(login::login))
+        .route("/verify-2fa", post(verify_mfa::verify_mfa))
+        .route("/logout", post(logout::logout))
+        .route("/verify-token", post(verify_token::verify_token))
 }
 
 // This struct encapsulates our application-related logic.
@@ -48,24 +50,4 @@ impl Application {
         self.http_future.await
     }
 
-}
-
-async fn signup() -> impl IntoResponse {
-    StatusCode::OK.into_response()
-}
-
-async fn login() -> impl IntoResponse {
-    StatusCode::OK.into_response()
-}
-
-async fn verify_mfa() -> impl IntoResponse {
-    StatusCode::OK.into_response()
-}
-
-async fn logout() -> impl IntoResponse {
-    StatusCode::OK.into_response()
-}
-
-async fn verify_token() -> impl IntoResponse {
-    StatusCode::OK.into_response()
 }

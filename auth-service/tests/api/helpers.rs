@@ -142,6 +142,22 @@ impl TestApp {
             .expect("Failed to execute login request.")
 
     }
+    pub async fn verify_mfa(&self, email: String, login_attempt_id: String, mfa_code: String) -> Response {
+        let body = Verify2FABody {
+            email,
+            login_attempt_id,
+            mfa_code
+        };
+
+        self.http_client
+            .post(&format!("{}/verify-2fa", &self.address))
+            .json(&body)
+            .header("Content-Type", "application/json")
+            .send()
+            .await
+            .expect("Failed to execute verify 2fa request.")
+
+    }
 
     pub async fn logout(&self, jwt: String) -> Response {
 
