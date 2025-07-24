@@ -1,13 +1,33 @@
-use crate::helpers::TestApp;
+use crate::helpers::{TestApp, get_random_email};
 
 #[tokio::test]
-async fn signup_creates_user() {
+async fn should_return_422_if_email_empty() {
     let app = TestApp::new().await;
-    let email = String::from("lads@test.com");
+
+    let empty_email = String::new();
     let password = String::from("lads123!");
     let requires_mfa = true;
 
-    let response = app.signup(email, password, requires_mfa).await;
+    let response = app.signup(empty_email, password, requires_mfa).await;
+    assert_eq!(
+        response.status().as_u16(),
+        422,
+        "Invalid email"
+    );
+}
 
-    assert_eq!(response.status().as_u16(), 200);
+#[tokio::test]
+async fn should_return_422_if_password_empty() {
+    let app = TestApp::new().await;
+
+    let empty_email = get_random_email();
+    let password = String::new();
+    let requires_mfa = true;
+
+    let response = app.signup(empty_email, password, requires_mfa).await;
+    assert_eq!(
+        response.status().as_u16(),
+        422,
+        "Password is too short"
+    );
 }

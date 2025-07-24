@@ -1,9 +1,9 @@
-use crate::helpers::TestApp;
+use crate::helpers::{TestApp, get_random_email};
 
 #[tokio::test]
 async fn logins_user_success() {
     let app = TestApp::new().await;
-    let email = String::from("lads@test.com");
+    let email = get_random_email();
     let password = String::from("lads123!");
 
     let response = app.login(email, password).await;

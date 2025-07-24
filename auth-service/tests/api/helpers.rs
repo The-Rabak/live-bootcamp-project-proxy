@@ -8,6 +8,7 @@ use axum_server::from_tcp;
 use reqwest::Client;
 use auth_service::app_router;
 use std::net::TcpListener;
+use uuid::Uuid;
 
 pub struct SignupBody {
     pub email: String,
@@ -185,6 +186,8 @@ impl TestApp {
             .expect("Failed to execute verify token request.")
 
     }
+}
 
-
+pub fn get_random_email() -> String {
+    format!("{}@example.com", Uuid::new_v4())
 }

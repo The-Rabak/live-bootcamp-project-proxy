@@ -1,9 +1,9 @@
-use crate::helpers::TestApp;
+use crate::helpers::{TestApp, get_random_email};
 
 #[tokio::test]
 async fn verify_mfa_success() {
     let app = TestApp::new().await;
-    let email = String::from("lads@test.com");
+    let email = get_random_email();
     let login_attempt_id = String::from("lads1");
     let mfa_code = String::from("mfa");
     let response = app.verify_mfa(email, login_attempt_id, mfa_code).await;
