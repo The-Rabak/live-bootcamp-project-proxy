@@ -3,11 +3,12 @@ use auth_service::Application;
 use serde::{Serialize, Serializer};
 use serde::ser::{SerializeStruct, SerializeStructVariant};
 use std::{time::Duration, net::SocketAddr};
+use std::arch::aarch64::__crc32b;
 use tokio::{spawn, time::sleep};
+use tokio::net::TcpListener;
 use axum_server::from_tcp;
 use reqwest::Client;
 use auth_service::app_router;
-use std::net::TcpListener;
 use uuid::Uuid;
 
 pub struct SignupBody {
@@ -66,41 +67,21 @@ pub struct TestApp {
 impl TestApp {
     pub async fn new() -> Self {
         let listener = TcpListener::bind("127.0.0.1:0")
-            .expect("Failed to bind ephemeral port");
+            .await
+            .expect("failed binding to an ephemeral port");
 
         let port = listener.local_addr().unwrap().port();
         let address = format!("http://127.0.0.1:{}", port);
 
-        let server = from_tcp(listener)
-            .serve(app_router().into_make_service());
+        let server = axum::serve(listener, app_router());
 
-        // 3) Spawn it
         spawn(async move {
             if let Err(e) = server.await {
                 eprintln!("Test server error: {}", e);
             }
         });
 
-        // 4) Poll until up (no more blind sleep)
         let client = Client::new();
-        let mut last_err = None;
-        for _ in 0..20 {
-            match client.get(&address).send().await {
-                Ok(resp) if resp.status().is_success() => {
-                    last_err = None;
-                    break;
-                }
-                Err(err) => {
-                    last_err = Some(err);
-                    sleep(Duration::from_millis(50)).await;
-                }
-                _ => {}
-            }
-        }
-        if let Some(err) = last_err {
-            panic!("Test server never came up: {}", err);
-        }
-
         TestApp { address, http_client: client }
     }
 

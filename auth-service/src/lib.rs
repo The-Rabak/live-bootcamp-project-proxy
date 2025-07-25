@@ -29,10 +29,6 @@ pub struct Application {
 impl Application {
 
     pub async fn build(address: &str) -> Result<Self, Box<dyn Error>> {
-        // Simple handlers for the endpoints
-        async fn handle_html() -> Html<&'static str> {
-            Html("<html><body>Success</body></html>")
-        }
 
         let router = app_router();
 
