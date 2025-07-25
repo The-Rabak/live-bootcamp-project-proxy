@@ -1,12 +1,8 @@
-use reqwest::{Error, Response};
-use auth_service::Application;
+use reqwest::Response;
 use serde::{Serialize, Serializer};
 use serde::ser::{SerializeStruct, SerializeStructVariant};
-use std::{time::Duration, net::SocketAddr};
-use std::arch::aarch64::__crc32b;
-use tokio::{spawn, time::sleep};
+use tokio::spawn;
 use tokio::net::TcpListener;
-use axum_server::from_tcp;
 use reqwest::Client;
 use auth_service::app_router;
 use uuid::Uuid;

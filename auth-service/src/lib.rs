@@ -1,8 +1,7 @@
-use axum::{response::Html, routing::post, Router};
+use axum::{routing::post, Router};
 use tower_http::services::ServeDir;
 use axum_server::bind;
 use std::{error::Error, future::Future, pin::Pin};
-use axum::response::IntoResponse;
 use routes::{login, logout, signup, verify_mfa, verify_token};
 
 pub mod routes;

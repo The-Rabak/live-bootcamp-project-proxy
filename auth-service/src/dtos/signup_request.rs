@@ -1,6 +1,6 @@
 use serde::{Serialize, Serializer};
 use serde::ser::SerializeStruct;
-use serde::de::{self, Deserialize, Deserializer, Visitor, SeqAccess, MapAccess, Error, Unexpected};
+use serde::de::{self, Deserialize, Deserializer, Visitor, MapAccess, Unexpected};
 use std::fmt;
 use regex::Regex;
 use once_cell::sync::Lazy;
