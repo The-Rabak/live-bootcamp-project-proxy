@@ -106,6 +106,8 @@ dependencies = [
  "axum",
  "axum-server",
  "env_logger",
+ "once_cell",
+ "regex",
  "reqwest",
  "serde",
  "serde_json",

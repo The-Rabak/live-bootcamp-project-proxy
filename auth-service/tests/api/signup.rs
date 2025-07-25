@@ -31,3 +31,17 @@ async fn should_return_422_if_password_empty() {
         "Password is too short"
     );
 }
+#[tokio::test]
+async fn should_return_200_if_fields_are_sent() {
+    let app = TestApp::new().await;
+
+    let random_email = get_random_email();
+    let password = String::from("ilads123!");
+    let requires_mfa = true;
+
+    let response = app.signup(random_email, password, requires_mfa).await;
+    assert_eq!(
+        response.status().as_u16(),
+        200
+    );
+}

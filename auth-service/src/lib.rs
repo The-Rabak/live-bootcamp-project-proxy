@@ -6,6 +6,8 @@ use axum::response::IntoResponse;
 use routes::{login, logout, signup, verify_mfa, verify_token};
 
 pub mod routes;
+pub mod dtos;
+
 type ServerFuture = Pin<Box<dyn Future<Output = Result<(), std::io::Error>> + Send>>;
 
 pub fn app_router() -> Router {

@@ -11,24 +11,7 @@ use reqwest::Client;
 use auth_service::app_router;
 use uuid::Uuid;
 
-pub struct SignupBody {
-    pub email: String,
-    pub password: String,
-    pub requires_mfa: bool
-}
-
-impl Serialize for SignupBody {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer
-    {
-        let mut state = serializer.serialize_struct("SignupBody", 3)?;
-        state.serialize_field("email", &self.email)?;
-        state.serialize_field("password", &self.password)?;
-        state.serialize_field("requires2FA", &self.requires_mfa)?;
-        state.end()
-    }
-}
+use auth_service::dtos::SignupRequestBody;
 
 #[derive(Serialize)]
 pub struct LoginBody {
@@ -94,7 +77,7 @@ impl TestApp {
     }
 
     pub async fn signup(&self, email: String, password: String, requires_mfa: bool) -> Response {
-        let body = SignupBody {
+        let body = SignupRequestBody {
             email,
             password,
             requires_mfa,
