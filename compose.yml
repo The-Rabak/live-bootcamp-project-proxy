@@ -4,16 +4,12 @@ services:
     restart: "always" # automatically restart container when server crashes
     environment: # set up environment variables
       AUTH_SERVICE_IP: ${AUTH_SERVICE_IP:-localhost} # Use localhost as the default value
-    ports:
-      - "8000:8000" # expose port 8000 so that applications outside the container can connect to it 
     depends_on: # only run app-service after auth-service has started
       auth-service:
         condition: service_started
   auth-service:
     image: legols122/auth-service
     restart: "always" # automatically restart container when server crashes
-    ports:
-      - "3000:3000" # expose port 3000 so that applications outside the container can connect to it
 
   proxy:
     build:
@@ -21,7 +17,10 @@ services:
     image: legols122/nginx-proxy
     restart: always
     ports:
-      - "8081:8081"
-      - "8444:8444"
+      - "80:80"
+      - "443:443"
+      - "3000:3000"
+      - "8000:8000"
     depends_on:
       - auth-service
+      - app-service
