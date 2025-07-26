@@ -1,16 +1,8 @@
-services:
-  app-service:
-    image: legols122/app-service # specify name of image on Docker Hub
-    restart: "always" # automatically restart container when server crashes
-    environment: # set up environment variables
-      AUTH_SERVICE_IP: ${AUTH_SERVICE_IP:-localhost} # Use localhost as the default value
-    depends_on: # only run app-service after auth-service has started
-      auth-service:
-        condition: service_started
-  auth-service:
-    image: legols122/auth-service
-    restart: "always" # automatically restart container when server crashes
+networks:
+  live-bootcamp-project:
+    name: live-bootcamp-project
 
+services:
   proxy:
     build:
       context: ./proxy
@@ -24,3 +16,5 @@ services:
     depends_on:
       - auth-service
       - app-service
+    networks:
+      - live-bootcamp-project
