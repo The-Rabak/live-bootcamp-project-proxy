@@ -13,8 +13,5 @@ services:
       - "443:443"
       - "3000:3000"
       - "8000:8000"
-    depends_on:
-      - auth-service
-      - app-service
     networks:
       - live-bootcamp-project

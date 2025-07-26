@@ -1,0 +1,12 @@
+networks:
+  live-bootcamp-project:
+    name: live-bootcamp-project
+
+services:
+  proxy:
+    depends_on:
+      - auth-service
+      - app-service
+  app-service:
+      depends_on:
+      - auth-service
